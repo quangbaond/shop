@@ -3,10 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 use App\Models\User;
-use App\Repositories\Eloquent\BaseRepository;
 
 class UserRepository extends BaseRepository
 {
@@ -29,7 +26,7 @@ class UserRepository extends BaseRepository
     public function search(int $limit, array $requester): LengthAwarePaginator
     {
         $query = $this->model->query();
-        collect($requester)->each(callback: fn($value, $key) => $query = match ($key) {
+        collect($requester)->each(callback: fn($value, $key) => match ($key) {
             'keyword' => $query->when($value, function ($query) use ($value) {
                 return $query->where(function ($query) use ($value) {
                     return $query->where('name', 'like', "%$value%")
@@ -39,7 +36,7 @@ class UserRepository extends BaseRepository
                         ->orWhere('number_phone', 'like', "%$value%");
                 });
             }),
-            'orderByColumn' => collect($value)->each(callback: fn($val, $k) => $query = match ($k) {
+            'orderByColumn' => collect($value)->each(callback: fn($val, $k) => match ($k) {
                 'name' => $query->orderBy('name', $requester['orderBy'] ?? 'asc'),
                 default => $query->orderBy($val, $requester['orderBy'] ?? 'asc'),
             }),
