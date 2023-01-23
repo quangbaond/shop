@@ -87,7 +87,7 @@
                         <tr>
                             <td>{{ $key+1 }}</td>
                             <td>
-                                <img src="{{ $user->avatar }}" class="rounded-circle border-3 border-dark" width="50" height="50">
+                                <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="rounded-circle border-3 border-dark" width="50" height="50">
                                 {{ $user->username }}
                             </td>
                             <td>{{ $user->name }}</td>
@@ -112,29 +112,15 @@
                     @endforeach
                     </tbody>
                 </table>
-
             </div>
         </div>
         <div class="card-footer">
             <div class="col-md-12 ">
                 <div class="d-flex justify-content-between">
                     <div class="align-self-center">
-                        <p>{{ __('app.show', ['record' => $limit, 'all' => $users->total()]) }}</p>
+                        <p>{{ __('app.show', ['record' => $limit, 'all' => $users ? $users->total() : 0]) }}</p>
                     </div>
-{{--                    <div class="row w-100">--}}
-{{--                        <label for="example-text-input-sm" class="col-md-2 col-form-label">{{ __('app.show') }}:</label>--}}
-{{--                        <div class="col-sm-2">--}}
-{{--                            <form action="{{ route('admin.users.index') }}" method="GET">--}}
-{{--                                @csrf--}}
-{{--                                <select class="form-control" name="limit" onchange="">--}}
-{{--                                    <option value="10">10</option>--}}
-{{--                                    <option value="20">20</option>--}}
-{{--                                </select>--}}
-{{--                            </form>--}}
-
-{{--                        </div>--}}
-{{--                    </div>--}}
-                    {{ $users->withQueryString()->onEachSide(1)->render('admin.partials.pagination') }}
+                    {{ $users ? $users->withQueryString()->onEachSide(1)->render('admin.partials.pagination') : '' }}
                 </div>
             </div>
         </div>

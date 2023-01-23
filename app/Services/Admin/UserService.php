@@ -4,8 +4,6 @@ namespace App\Services\Admin;
 
 use App\Services\BaseService;
 use App\Repositories\Eloquent\UserRepository;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Model;
 
 class UserService extends BaseService
 {
@@ -15,7 +13,7 @@ class UserService extends BaseService
     protected UserRepository $userRepository;
 
     /**
-     * $newRepository constructor.
+     * $userRepository constructor.
      *
      * @param UserRepository $userRepository
      */
@@ -26,21 +24,13 @@ class UserService extends BaseService
     }
 
     /**
-     * @param $slug
-     * @return Model
-     */
-    public function findBySlug($slug): Model
-    {
-        return $this->newRepository->findBySlug($slug);
-    }
-
-    /**
      * @param int $limit
      * @param string[] $columns
-     * @return LengthAwarePaginator
+     * @return object|array
      */
-    public function search(int $limit = PAGINATE_DEFAULT, array $columns = ['*']): LengthAwarePaginator
+    public function search(int $limit = PAGINATE_DEFAULT, array $columns = ['*']): object|array
     {
-        return $this->userRepository->search($limit, $columns);
+        $columnCanSearchKeyword = ['name', 'email', 'username', 'address', 'number_phone', 'created_at', 'updated_at'];
+        return $this->userRepository->pagination($limit, $columns, $columnCanSearchKeyword) ?? [];
     }
 }

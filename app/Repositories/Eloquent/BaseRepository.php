@@ -1,5 +1,7 @@
 <?php
 namespace App\Repositories\Eloquent;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class BaseRepository
@@ -40,11 +42,17 @@ class BaseRepository
 
     /**
      * @param int $limit
-     * @return Model
+     * @param array $requester
+     * @param array $columnCanSearchKeyword
+     * @return LengthAwarePaginator|null
      */
-    public function pagination(int $limit = PAGINATE_DEFAULT) :Object
+    public function pagination(int $limit = PAGINATE_DEFAULT, array $requester = [], array $columnCanSearchKeyword = []): LengthAwarePaginator|null
     {
-        return $this->model->paginate($limit);
+        try {
+            return $this->search($requester, $columnCanSearchKeyword)->paginate($limit);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -57,13 +65,34 @@ class BaseRepository
         return $this->model->delete($model);
     }
 
-
     /**
-     * @param string $slug
-     * @return Model
+     * @param array $requester
+     * @param array $columnCanSearchKeyword
+     * @return Builder
      */
-    public function findBySlug(string $slug): Model
+    public function search(array $requester = [], array $columnCanSearchKeyword = []): Builder
     {
-        return $this->model->where('slug', $slug)->first();
+        $query = $this->model->query();
+        collect($requester)->each(
+            callback: fn($value, $key) => match ($key) {
+            'keyword' => $query->when(
+                value: $value,
+                callback: fn($query)
+                => $query->where(
+                    fn($query) =>
+                    collect($columnCanSearchKeyword)->each(
+                        callback: fn($valueColumn) => $query->orWhere($valueColumn, 'like', "%$value%")),
+                )
+            ),
+            'orderByColumn' => collect($value)->each(callback: fn($val, $k) => $query->orderBy(column: $k, direction: $val)),
+            'orderBy', 'page' => $query,
+            'limit' => $query->limit(value: $value),
+            default => $query->when(
+                value: $value,
+                callback: fn($query) => $query->where($key, $value),
+                default: fn($query) => $query->where($key, '!=', null),
+            ),
+        });
+        return $query;
     }
 }
