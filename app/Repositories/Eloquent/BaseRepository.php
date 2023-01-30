@@ -1,43 +1,35 @@
 <?php
 namespace App\Repositories\Eloquent;
+use Exception;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
-class BaseRepository
+abstract class BaseRepository
 {
     /**
      * @var Model
      */
-    public Model $model;
+    protected Model $model;
+
+    /**
+     * Specify Model class name
+     *
+     * @return string
+     */
+    abstract public function model(): string;
 
     /**
      * BaseRepository constructor.
      *
-     * @param Model $model
+     * @throws BindingResolutionException
      */
-    public function __construct(Model $model)
+    public function __construct()
     {
-        $this->model = $model;
-    }
-
-    /**
-     * @param array $attributes
-     *
-     * @return Model
-     */
-    public function create(array $attributes): Model
-    {
-        return $this->model->create($attributes);
-    }
-
-    /**
-     * @param int $id
-     * @return Model
-     */
-    public function find(int $id): Model
-    {
-        return $this->model->find($id) ?? abort(404);
+        $this->makeModel();
     }
 
     /**
@@ -45,30 +37,18 @@ class BaseRepository
      * @param array $requester
      * @param array $columnCanSearchKeyword
      * @return LengthAwarePaginator|null
+     * @throws Exception
      */
     public function pagination(int $limit = PAGINATE_DEFAULT, array $requester = [], array $columnCanSearchKeyword = []): LengthAwarePaginator|null
     {
-        try {
-            return $this->search($requester, $columnCanSearchKeyword)->paginate($limit);
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
-
-    /**
-     * @param int $id
-     * @return bool
-     */
-    public function delete(int $id): bool
-    {
-        $model = $this->model->find($id);
-        return $this->model->delete($model);
+        return $this->search($requester, $columnCanSearchKeyword)->paginate($limit);
     }
 
     /**
      * @param array $requester
      * @param array $columnCanSearchKeyword
      * @return Builder
+     * @throws Exception
      */
     public function search(array $requester = [], array $columnCanSearchKeyword = []): Builder
     {
@@ -81,18 +61,151 @@ class BaseRepository
                 => $query->where(
                     fn($query) =>
                     collect($columnCanSearchKeyword)->each(
-                        callback: fn($valueColumn) => $query->orWhere($valueColumn, 'like', "%$value%")),
+                        callback: fn($column) => $this->queryLike(column: $column, value: $value, query: $query)
+                    ),
                 )
             ),
-            'orderByColumn' => collect($value)->each(callback: fn($val, $k) => $query->orderBy(column: $k, direction: $val)),
-            'orderBy', 'page' => $query,
-            'limit' => $query->limit(value: $value),
-            default => $query->when(
-                value: $value,
-                callback: fn($query) => $query->where($key, $value),
-                default: fn($query) => $query->where($key, '!=', null),
-            ),
+            'select' => $this->querySelect(query: $query, columns: $value),
+            'orderByColumn' => collect($value)->each(callback: fn($column, $k) => $this->queryOrderByColumn(column: $column, direction: $requester['orderBy'], query: $query)),
+            'orderBy', 'page', 'limit' => $query,
+            default => !is_null($value) ? $this->queryDefault(column: $key, value: $value, query: $query) : $query,
         });
         return $query;
+    }
+
+    /**
+     * @throws BindingResolutionException
+     * @throws Exception
+     */
+    public function makeModel(): Model
+    {
+        $model = app()->make($this->model());
+        if (!$model instanceof Model) {
+            throw new Exception("Class {$this->model()} must be an instance of Illuminate\\Database\\Eloquent\\Model");
+        }
+        return $this->model = $model;
+    }
+
+    /**
+     * @param string $column
+     * @param string $value
+     * @param Builder $query
+     * @return Builder
+     * @throws Exception
+     */
+    public function queryDefault(string $column, string $value, Builder $query): Builder
+    {
+        // if not exit $column throw error
+        if (!in_array($column, $this->model->getFillable())) {
+           return !env('APP_DEBUG')
+               ? $query
+               : throw new Exception(message: 'Column ' . $column . ' not exist in table ' . $this->model->getTable(), code: 500);
+        }
+
+        return $query->when(!is_null($value), function ($q) use ($column, $value) {
+            return $q->where($column, $value);
+        }, function ($q) use ($column) {
+            return $q->whereNull($column);
+        });
+
+    }
+
+    /**
+     * @param string $column
+     * @param string $direction
+     * @param Builder $query
+     * @return Builder
+     */
+    public function queryOrderByColumn(string $column, string $direction, Builder $query): Builder
+    {
+        $typeDirection = $direction === 'asc' ? 'asc' : 'desc';
+        return $query->orderBy(column: $column, direction: $typeDirection);
+    }
+
+    /**
+     * @param string $column
+     * @param string $value
+     * @param Builder $query
+     * @return Builder
+     */
+    public function queryLike(string $column, string $value, Builder $query): Builder
+    {
+        return $query->orWhere($column, 'like', "%$value%");
+    }
+
+    /**
+     * @param int $id
+     * @param array $columns
+     * @return Model|Collection|Builder|array|null
+     */
+    public function find(int $id, array $columns = ['*']): Model|\Illuminate\Database\Eloquent\Collection|Builder|array|null
+    {
+        return $this->model->query()->findOrFail($id, $columns);
+    }
+
+    /**
+     * @param Builder $query
+     * @param array|string $columns
+     * @return Builder
+     * @throws Exception
+     */
+    public function querySelect(Builder $query, array|string $columns = ['*']): Builder
+    {
+        if($columns === ['*']) return $query->addSelect($columns);
+        if(is_string($columns)) $columns = explode(',', $columns);
+        // if not exit $column throw error
+        collect($columns)->each(
+            callback: fn($column)
+            => (in_array($column, $this->model->getFillable())
+                ? $query->addSelect($column) : !env('APP_DEBUG')) ? $query
+                : throw new Exception(message: 'Column ' . $column . ' not exist in table ' . $this->model->getTable(), code: 500)
+        );
+        return $query;
+    }
+
+    /**
+     * @param array $data
+     * @return Model
+     */
+    public function create(array $data): Model {
+        return $this->model->query()->create($data);
+    }
+
+    /**
+     * @param array $data
+     * @param int $id
+     * @return bool
+     * @throws Exception
+     */
+    public function update(array $data, int $id): bool
+    {
+        return $this->find($id)->update($data);
+    }
+
+    /**
+     * @param array $data
+     * @return Model
+     * @throws Exception
+     */
+    public function updateOrCreate(array $data): Model
+    {
+        return $this->model->query()->updateOrCreate($data);
+    }
+
+    /**
+     * @param int $id
+     * @return Model
+     *
+     * @throws Exception
+     */
+    public function delete(int $id): Model
+    {
+        $model = $this->find($id);
+        return $model->delete();
+    }
+
+    public function uploadFileStorage(string $path, string $file, string $disk = 'public'): string
+    {
+        return Storage::disk($disk)->putFile($path, $file);
     }
 }

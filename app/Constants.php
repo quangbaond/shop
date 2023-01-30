@@ -8,3 +8,12 @@ const PAGINATE_DEFAULT = 10;
 const ARRAY_LIMIT = [10, 20, 30, 40, 50];
 const ARRAY_STATUS = [STATUS_ACTIVE => 'Hoạt động', STATUS_INACTIVE => 'Ngừng hoạt động'];
 
+const ARRAY_ORDER_BY_USER = [
+    'name' => 'Tên',
+    'email' => 'Email',
+    'created_at' => 'Ngay tạo',
+    'updated_at' => 'Ngày cập nhật',
+    'address' => 'Địa chỉ',
+    'number_phone' => 'Số điện thoại',
+];
+

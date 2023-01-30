@@ -4,14 +4,13 @@ namespace App\Services;
 use App\Repositories\Eloquent\BaseRepository;
 use Exception as ExceptionAlias;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Collection;
 
 class BaseService
 {
     /**
      * @var BaseRepository
      */
-    public $repository;
+    public BaseRepository $repository;
     /**
      * BaseService constructor.
      *
@@ -22,40 +21,42 @@ class BaseService
         $this->repository = $repository;
     }
     /**
-     * @param array $attributes
-     *
-     * @return Model
-     */
-    public function create(array $attributes): Model
-    {
-        return $this->repository->create($attributes);
-    }
-    /**
      * @param $id
      * @return Model
      */
-    public function find($id) :Model
+    public function find(int $id) :Model
     {
         return $this->repository->find($id);
     }
-    /**
-     * @param $limit
-     * @return Model
-     */
-    public function pagination($limit): Object
-    {
-        return $this->repository->pagination($limit);
-    }
 
     /**
-     * @param $id
+     * @param array $data
+     * @param int $id
+     * @return bool
+     * @throws ExceptionAlias
+     */
+    public function update(array $data, int $id) : bool
+    {
+        return $this->repository->update($data, $id);
+    }
+    /**
+     * @param int $id
+     *
      * @return Model
      * @throws ExceptionAlias
      */
-    public function delete($id) :Model
+    public function delete(int $id) : Model
     {
-        $user = $this->find($id);
-        return $user->delete($user);
+        return $this->repository->delete($id);
+    }
+
+    /**
+     * @param array $data
+     * @return Model
+     */
+    public function create(array $data) : Model
+    {
+        return $this->repository->create($data);
     }
 }
 

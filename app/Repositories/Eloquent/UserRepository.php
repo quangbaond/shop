@@ -1,19 +1,35 @@
 <?php
 
 namespace App\Repositories\Eloquent;
-
+use Exception;
 use App\Models\User;
 
 class UserRepository extends BaseRepository
 {
     /**
-     * UserRepository constructor.
+     * Specify Model class name
      *
-     * @param User $model
+     * @return string
      */
-    public function __construct(User $model)
+    public function model(): string
     {
-        parent::__construct($model);
+        return User::class;
+    }
+
+    /**
+     * @param array $data
+     * @param int $id
+     * @return bool
+     * @throws Exception
+     */
+    public function update(array $data, int $id): bool
+    {
+        $model = $this->find($id);
+        if(isset($data['avatar'])) {
+            if(!is_file($data['avatar'])) throw new Exception('File not found');
+            $data['avatar'] = $this->uploadFileStorage(path: 'avatars', file: $data['avatar']);
+        }
+        return $model->update($data);
     }
 
 }

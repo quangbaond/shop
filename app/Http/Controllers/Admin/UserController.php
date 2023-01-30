@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use Exception;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use App\Services\Admin\UserService;
-use Illuminate\Http\Response;
 
 class UserController extends Controller
 {
@@ -15,10 +17,10 @@ class UserController extends Controller
      * @var UserService
      */
     protected UserService $userService;
+
     /**
      * UserController constructor.
      * @param UserService $userService
-     * @param User $user
      */
     public function __construct(UserService $userService)
     {
@@ -30,46 +32,47 @@ class UserController extends Controller
      *
      * @param Request $request
      * @return View
+     * @throws Exception
      */
     public function index(Request $request): View
     {
         $requester = $request->query->all();
-        $limit = $requester['limit'] ?? PAGINATE_DEFAULT;
-        $users = $this->userService->search($limit, $requester);
-        return view('admin.users.list', compact('users', 'limit', 'requester'));
+        $users = $this->userService->search(requester: $requester);
+        return view('admin.users.list', compact('users', 'requester'));
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return Response
+     * @return View
      */
-    public function create()
+    public function create(): View
     {
-        //
+        return view('admin.users.create');
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param Request $request
-     * @return Response
+     * @return RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request) : RedirectResponse
     {
-        //
+        $this->userService->create($request->all());
+        return redirect()->route('admin.users.index')->with('success', 'Create user successfully');
     }
 
     /**
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
-        $user = $this->userService->find($id);
-        dd($user);
+        $user = $this->userService->find(id: $id);
+        return response()->json($user);
     }
 
     /**
@@ -88,22 +91,25 @@ class UserController extends Controller
      * Update the specified resource in storage.
      *
      * @param Request $request
-     * @param  int  $id
-     * @return Response
+     * @param int $id
+     * @return RedirectResponse
+     * @throws Exception
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): RedirectResponse
     {
-        //
+        $user = $this->userService->update(data: $request->all(), id: $id);
+        return $user ? redirect()->route('admin.users.index')->with('success', 'Update user successfully') : back()->withInput();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return Response
+     * @param int $id
+     * @return Model
+     * @throws Exception
      */
-    public function destroy($id)
+    public function destroy(int $id): Model
     {
-        //
+        return $this->userService->delete(id: $id);
     }
 }

@@ -24,32 +24,19 @@
                             <option {{ !isset($requester['status']) ? 'selected' : '' }} value="">{{ __('app.select_status') }}</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label for="orderByColumn">{{ __('app.select_order_by_column') }}</label>
-                        <select id="orderByColumn" name="orderByColumn[]" multiple="multiple">
-                            <option
-                                @selected(isset($requester['orderByColumn']) && in_array('created_at', $requester['orderByColumn']))
-                                value="created_at">{{ __('app.order_create') }}
-                            </option>
-                            <option
-                                @selected(isset($requester['orderByColumn']) && in_array('updated_at', $requester['orderByColumn']))
-                                value="updated_at">{{ __('app.order_update') }}
-                            </option>
-                            <option
-                                @selected(isset($requester['orderByColumn']) && in_array('name', $requester['orderByColumn']))
-                                value="name">{{ __('app.order_name') }}
-                            </option>
-                            <option
-                                @selected(isset($requester['orderByColumn']) && in_array('address', $requester['orderByColumn']))
-                                value="address"> {{ __('app.order_address') }}
-                            </option>
-                        </select>
-                    </div>
                     <div class="col-md-3">
                         <label for="orderBy">{{ 'Thứ tự sắp xếp'  }}</label>
                         <select class="form-select" id="orderBy" name="orderBy">
-                            <option value="asc">{{ 'Tăng dần' }}</option>
-                            <option value="desc">{{ 'Giảm dần' }}</option>
+                            <option value="asc"
+                                @selected(isset($requester['orderBy']) && $requester['orderBy'] == 'asc')
+                            >
+                                {{ 'Tăng dần' }}
+                            </option>
+                            <option value="desc"
+                                @selected(isset($requester['orderBy']) && $requester['orderBy'] == 'desc')
+                            >
+                                {{ 'Giảm dần' }}
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -60,6 +47,16 @@
                                     @selected(isset($requester['limit']) && $requester['limit'] == $limit)
                                     value="{{ $limit }}">{{ $limit }}
                                 </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="orderByColumn">{{ __('app.select_order_by_column') }}</label>
+                        <select id="orderByColumn" name="orderByColumn[]" multiple="multiple">
+                            @foreach(ARRAY_ORDER_BY_USER as $key => $value)
+                                <option
+                                    @selected(isset($requester['orderByColumn']) && in_array($key, $requester['orderByColumn']))
+                                    value="{{ $key }}">{{ $value }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -78,6 +75,7 @@
                         <th>{{ __('app.username') }}</th>
                         <th>{{ __('app.name') }}</th>
                         <th>{{ __('app.email') }}</th>
+                        <th>{{ __('So dien thoai') }}</th>
                         <th>{{ __('app.status_user') }}</th>
                         <th>{{ __('app.actions') }}</th>
                     </tr>
@@ -92,6 +90,7 @@
                             </td>
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
+                            <td>{{ $user->number_phone }}</td>
                             <td>
                             <span class="badge badge-soft-{{ \App\Helpers\HelperUi::showStatusUser($user)['class_name']  }}">
                                 {{ \App\Helpers\HelperUi::showStatusUser($user)['status_name'] }}
@@ -118,7 +117,7 @@
             <div class="col-md-12 ">
                 <div class="d-flex justify-content-between">
                     <div class="align-self-center">
-                        <p>{{ __('app.show', ['record' => $limit, 'all' => $users ? $users->total() : 0]) }}</p>
+                        <p>{{ __('app.show', ['record' => $users ? $users->perpage() : 0, 'all' => $users ? $users->total() : 0]) }}</p>
                     </div>
                     {{ $users ? $users->withQueryString()->onEachSide(1)->render('admin.partials.pagination') : '' }}
                 </div>
