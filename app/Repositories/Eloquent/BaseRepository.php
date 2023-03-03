@@ -36,12 +36,14 @@ abstract class BaseRepository
      * @param int $limit
      * @param array $requester
      * @param array $columnCanSearchKeyword
-     * @return LengthAwarePaginator|null
+     * @return Builder[]|Collection
      * @throws Exception
      */
-    public function pagination(int $limit = PAGINATE_DEFAULT, array $requester = [], array $columnCanSearchKeyword = []): LengthAwarePaginator|null
+    public function pagination(int $limit = PAGINATE_DEFAULT, array $requester = [], array $columnCanSearchKeyword = []): array|Collection|LengthAwarePaginator
     {
-        return $this->search($requester, $columnCanSearchKeyword)->paginate($limit);
+        return isset($requester['all']) && $requester['all']
+            ? $this->search($requester, $columnCanSearchKeyword)->get()
+            : $this->search($requester, $columnCanSearchKeyword)->paginate($limit);
     }
 
     /**
@@ -67,7 +69,7 @@ abstract class BaseRepository
             ),
             'select' => $this->querySelect(query: $query, columns: $value),
             'orderByColumn' => collect($value)->each(callback: fn($column, $k) => $this->queryOrderByColumn(column: $column, direction: $requester['orderBy'], query: $query)),
-            'orderBy', 'page', 'limit' => $query,
+            'orderBy', 'page', 'limit', 'all' => $query,
             default => !is_null($value) ? $this->queryDefault(column: $key, value: $value, query: $query) : $query,
         });
         return $query;
@@ -167,7 +169,8 @@ abstract class BaseRepository
      * @param array $data
      * @return Model
      */
-    public function create(array $data): Model {
+    public function create(array $data): Model
+    {
         return $this->model->query()->create($data);
     }
 

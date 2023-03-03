@@ -11,6 +11,11 @@ Breadcrumbs::for('admin_user_list', function ($trail) {
     $trail->parent('admin_home');
     $trail->push(__('sidebar.userList'), route('admin.index'));
 });
+// Home/users/add
+Breadcrumbs::for('admin_user_add', function ($trail) {
+    $trail->parent('admin_home');
+    $trail->push(__('Thêm mới người dung'), route('admin.users.create'));
+});
 // Home/users/user_info.
 Breadcrumbs::for('admin_user_edit', function ($trail, $user) {
     $trail->parent('admin_user_list');

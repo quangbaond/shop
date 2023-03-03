@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-
+@section('title', __('Danh sách người dùng'))
 @section('css')
     <link href="{{ asset('dist/assets/plugins/select/selectr.min.css') }}" rel="stylesheet" type="text/css" />
 @stop
@@ -56,13 +56,16 @@
                             @foreach(ARRAY_ORDER_BY_USER as $key => $value)
                                 <option
                                     @selected(isset($requester['orderByColumn']) && in_array($key, $requester['orderByColumn']))
-                                    value="{{ $key }}">{{ $value }}</option>
+                                    value="{{ $key }}">{{ $value }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end align-self-center mt-3">
                     <button type="submit" class="btn btn-primary" id="btnSearch">{{ 'Tìm kiếm' }}</button>
+                    <a href="{{ route('admin.users.create') }}" class="btn btn-success ms-3">{{ 'Thêm mới' }}</a>
+
                 </div>
             </form>
         </div>
@@ -85,7 +88,7 @@
                         <tr>
                             <td>{{ $key+1 }}</td>
                             <td>
-                                <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="rounded-circle border-3 border-dark" width="50" height="50">
+                                <img src="{{asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="rounded-circle border-3 border-dark" width="50" height="50">
                                 {{ $user->username }}
                             </td>
                             <td>{{ $user->name }}</td>
@@ -117,9 +120,13 @@
             <div class="col-md-12 ">
                 <div class="d-flex justify-content-between">
                     <div class="align-self-center">
-                        <p>{{ __('app.show', ['record' => $users ? $users->perpage() : 0, 'all' => $users ? $users->total() : 0]) }}</p>
+                        @if(isset($requester['all']) && $requester['all'])
+                            <p>{{ 'hie thi tat ca '. $users->count()  }}</p>
+                        @else
+                        <p>{{ __('app.show', ['record' =>  $users->perpage() , 'all' => $users->total() ]) }}</p>
+                        @endif
                     </div>
-                    {{ $users ? $users->withQueryString()->onEachSide(1)->render('admin.partials.pagination') : '' }}
+                    {{ array_key_exists('all', $requester) && $requester['all'] ? '' : $users->withQueryString()->onEachSide(1)->render('admin.partials.pagination')  }}
                 </div>
             </div>
         </div>

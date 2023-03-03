@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\NewUserRequest;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -56,8 +57,9 @@ class UserController extends Controller
      *
      * @param Request $request
      * @return RedirectResponse
+     * @throws Exception
      */
-    public function store(Request $request) : RedirectResponse
+    public function store(NewUserRequest $request) : RedirectResponse
     {
         $this->userService->create($request->all());
         return redirect()->route('admin.users.index')->with('success', 'Create user successfully');
@@ -98,7 +100,7 @@ class UserController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $user = $this->userService->update(data: $request->all(), id: $id);
-        return $user ? redirect()->route('admin.users.index')->with('success', 'Update user successfully') : back()->withInput();
+        return $user ? redirect()->route('admin.users.index')->with('Success', 'Update user successfully') : back()->withInput();
     }
 
     /**

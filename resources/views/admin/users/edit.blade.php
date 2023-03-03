@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-
+@section('title', __('Chỉnh sửa người dùng'))
 @section('css')
     <link href="{{ asset('dist/assets/plugins/select/selectr.min.css') }}" rel="stylesheet" type="text/css" />
 @stop
@@ -32,12 +32,18 @@
                         </div>
                         <div class="form-group mb-3">
                             <label for="address">{{ 'Địa chi' }}</label>
-                            <textarea type="text" id="address" name="address" class="form-control" placeholder="địa ch" >
-                            {{ $user->address }}
-                        </textarea>
+                            <textarea type="text" id="address" name="address" class="form-control" placeholder="địa ch" >{{ $user->address }}</textarea>
                             <div class="help-block with-errors"></div>
                             @if ($errors->has('address'))
                                 <span class="text-danger">{{ $errors->first('address') }}</span>
+                            @endif
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="number_phone">{{ 'So dien thoai' }}</label>
+                            <input type="text" value="{{ $user->phone_number }}" id="number_phone" name="number_phone" class="form-control" placeholder="{{ __('+84389228496') }}" >
+                            <div class="help-block with-errors"></div>
+                            @if ($errors->has('number_phone'))
+                                <span class="text-danger">{{ $errors->first('number_phone') }}</span>
                             @endif
                         </div>
                         <div class="form-group mb-3">
@@ -58,7 +64,7 @@
                     <div class="col-md-6">
                         <div class="form-group mb-3 d-flex justify-content-center">
                             <label for="avatar">
-                                <img src="{{ $user->avatar }}" id="avatar-user" class="rounded-circle border-3 border-dark" width="100" height="100" alt="{{ $user->username }}">
+                                <img src="{{ asset('storage/'.$user->avatar) }}" id="avatar-user" class="rounded-circle border-3 border-dark" width="100" height="100" alt="{{ $user->username }}">
                             </label>
                             <input type="file" id="avatar" name="avatar" class="d-none" >
                             <div class="help-block with-errors"></div>
@@ -69,7 +75,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <button type="submit" class="btn btn-primary">{{ __('Cap nhat') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ __('Cập nhat') }}</button>
                 </div>
             </form>
 

@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8" />
-    <title>{{ env('APP_NAME') }} - Admin & {{ $title ?? '' }}</title>
+    <title>{{ env('APP_NAME') }} - Admin & @yield('title') </title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <meta content="" name="author" />
@@ -27,6 +27,21 @@
         <!-- Page Content-->
         <div class="page-content-tab">
             <div class="container-fluid">
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Error!</strong>
+                        @foreach ($errors->all() as $error)
+                            <li>{{$error}}</li>
+                        @endforeach
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if(session()->has('success'))
+                    <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                        <strong>Success!</strong> {{ session()->get('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
                 @yield('content')
             </div><!-- container -->
             @include('admin.includes.footer')

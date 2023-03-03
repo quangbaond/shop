@@ -15,7 +15,7 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        AdminAlias::create([
+        AdminAlias::query()->create([
             'name' => 'admin',
             'email' => 'admin@admin.com',
             'password' => bcrypt('admin'),
