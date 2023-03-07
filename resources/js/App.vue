@@ -19,8 +19,8 @@
 
                             <div class="row align-items-center">
                                 <div class="col-md-8 col-lg-8 col-xl-8 col-sm-12">
-                                    <label for="video-youtube-url">Đường dẫn video youtube</label>
-                                    <input class="form-control" @change="onChangeUrl" v-model="videoOptions.url" :class="{ errorMessages: 'is-inValid' }" placeholder="https://www.youtube.com/watch?v=VDxQP_88eBY&list=RDVDxQP_88eBY&start_radio=1" type="text">
+                                    <label for="video-url">Đường dẫn video</label>
+                                    <input class="form-control" id="video-url" @change="onChangeUrl" v-model="videoOptions.url" :class="{ errorMessages: 'is-inValid' }" placeholder="https://www.tiktok.com/@theanh28entertainment/video/7207820522107833602" type="text">
                                 </div>
                                 <div class="col-md-2">
                                     <label for="quality">Chất lượng</label>
