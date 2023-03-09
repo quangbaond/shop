@@ -165,7 +165,6 @@ export default {
                 console.log(this.errorMessages);
                 return;
             }
-
             this.isLoading = true;
             axios.post('/api/download-video', {
                 url: this.videoOptions.url,
@@ -192,7 +191,13 @@ export default {
             });
         },
         fetchFileAndDownload(url, name) {
-            fetch(url) // Call the fetch function passing the url of the API as a parameter
+            fetch(url, {
+                mode: 'no-cors',
+                // fix cors error
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            }) // Call the fetch function passing the url of the API as a parameter
                 .then((resp) => resp.blob()) // Transform the data into blob
                 .then(function (blob) {
                     // Create blob link to download
@@ -215,16 +220,16 @@ export default {
             const videoFromData = dataVideo.videos && dataVideo.videos.items && Array.isArray(dataVideo.videos.items) ? dataVideo.videos.items : [];  // get video from data
             audioFromData.forEach((item) => {
                 options.push({
-                    value: item.url,
+                    value: item.extension,
                     text: `${item.extension.toUpperCase()}(${item.sizeText})`,
-                    url: item.url,
+                    url: item.url
                 })
             });
             videoFromData.forEach((item) => {
                 options.push({
-                    value: item.url,
+                    value: item.extension,
                     text: `${item.extension.toUpperCase()}(${item.sizeText})`,
-                    url: item.url,
+                    url: item.url
                 })
             });
             this.youtubeData.qualityOptions = options;
@@ -235,7 +240,7 @@ export default {
         },
         limitText(text, limit = 100) {
             if (text.length > limit) {
-                return text.substring(0, limit) + '...';    
+                return text.substring(0, limit) + '...';
             }
             return text;
         },
@@ -244,8 +249,8 @@ export default {
                 this.errorMessages = 'Vui lòng chọn chất lượng video';
                 return;
             }
-            const video = this.youtubeData.qualityOptions.find((item) => item.value === this.youtubeData.quality);
-            this.fetchFileAndDownload(video.url, this.youtubeData.title + this.youtubeData.quality);
+            const videoSelect = this.youtubeData.qualityOptions.find((item) => item.value === this.youtubeData.quality);
+            this.fetchFileAndDownload(videoSelect.url, this.youtubeData.title + '.' + videoSelect.value);
         }
     }
 
