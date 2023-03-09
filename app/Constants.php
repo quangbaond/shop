@@ -16,4 +16,18 @@ const ARRAY_ORDER_BY_USER = [
     'address' => 'Địa chỉ',
     'number_phone' => 'Số điện thoại',
 ];
+define("RAPID_API_TIKTOK", [
+    'api_url' => 'https://tiktok-downloader-download-tiktok-videos-without-watermark.p.rapidapi.com/vid/index',
+    'headers' => [
+        'X-RapidAPI-Key' => env('RAPID_API_KEY', '70a786bf74msh0b40cda63d301e2p1863e5jsn5b1257b12287'),
+        'X-RapidAPI-Host' => 'tiktok-downloader-download-tiktok-videos-without-watermark.p.rapidapi.com'
+    ],
+]);
+define("RAPID_API_YOUTUBE", [
+    'api_url' => 'https://youtube-media-downloader.p.rapidapi.com/v2/video/details',
+    'headers' => [
+        'X-RapidAPI-Key' => env('RAPID_API_KEY', '70a786bf74msh0b40cda63d301e2p1863e5jsn5b1257b12287'),
+        'X-RapidAPI-Host' => 'youtube-media-downloader.p.rapidapi.com'
+    ]
+]);
 
