@@ -46,7 +46,7 @@
                         <div class="data-youtube" v-if="isLoadedYoutube">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <img :width="youtubeData.thumbnail.width" :height="youtubeData.thumbnail.height" :src="youtubeData.thumbnail.url" :alt="youtubeData.description" class="img-fluid img-thumbnail">
+                                    <img :src="youtubeData.thumbnail" :alt="youtubeData.description" class="img-fluid img-thumbnail">
                                 </div>
                                 <div class="col-md-8">
                                     <h3>{{ youtubeData.title }}</h3>
@@ -71,6 +71,7 @@
 
 <script>
 import axios from 'axios';
+
 export default {
     name: "App",
     data() {
@@ -186,26 +187,33 @@ export default {
                 this.isLoading = false;
                 this.errorMessages = '';
             }).catch((error) => {
-                this.errorMessages = error.response.data.error;
+                // this.errorMessages = error.response.data.error;
                 this.isLoading = false;
             });
         },
         fetchFileAndDownload(url, name) {
             fetch(url, {
+                method: 'GET',
                 mode: 'no-cors',
                 // fix cors error
                 headers: {
                     'Access-Control-Allow-Origin': '*',
                 },
             }) // Call the fetch function passing the url of the API as a parameter
-                .then((resp) => resp.blob()) // Transform the data into blob
+                .then((resp) => {
+                    console.log(resp);
+                    return resp.blob();
+                }) // Transform the data into blob
                 .then(function (blob) {
+                    // Create blob link to download
+
+                    console.log(blob)
                     // Create blob link to download
                     let url = window.URL.createObjectURL(blob);
                     let a = document.createElement('a');
                     a.href = url
                     a.download = name;
-                    a.click();
+                    // a.click();
                 })
                 .catch(function (error) {
                     // If there is any error you will catch them here
@@ -216,26 +224,25 @@ export default {
         processResponseYoutube(dataVideo = []) {
             console.log(dataVideo)
             let options = [];
-            const audioFromData = dataVideo.audios && dataVideo.audios.items && Array.isArray(dataVideo.audios.items) ? dataVideo.audios.items : []; // get audio from data
-            const videoFromData = dataVideo.videos && dataVideo.videos.items && Array.isArray(dataVideo.videos.items) ? dataVideo.videos.items : [];  // get video from data
-            audioFromData.forEach((item) => {
-                options.push({
-                    value: item.extension,
-                    text: `${item.extension.toUpperCase()}(${item.sizeText})`,
-                    url: item.url
-                })
-            });
-            videoFromData.forEach((item) => {
-                options.push({
-                    value: item.extension,
-                    text: `${item.extension.toUpperCase()}(${item.sizeText})`,
-                    url: item.url
-                })
-            });
+            let links = dataVideo.link;
+
+           // loop objects links
+            for (let key in links) {
+                for (let i = 0; i < links[key].length; i++) {
+                    console.log(links[key])
+                    options.push({
+                        value: links[key][3],
+                        text: `${links[key][3]} (${links[key][2]})`,
+                        url: links[key][0],
+                    });
+                }
+            }
+
+
             this.youtubeData.qualityOptions = options;
             this.youtubeData.quality = options[0].value;
             this.youtubeData.title = dataVideo.title;
-            this.youtubeData.thumbnail = Array.isArray(dataVideo.thumbnails) && dataVideo.thumbnails.length > 0 ? dataVideo.thumbnails[dataVideo.thumbnails.length - 1] : 'https://i.ytimg.com/vi/QH2-TGUlwu4/maxresdefault.jpg';
+            this.youtubeData.thumbnail = dataVideo.thumb;
             this.youtubeData.description = dataVideo.description ? this.limitText(dataVideo.description, 100) : '';
         },
         limitText(text, limit = 100) {
@@ -244,15 +251,20 @@ export default {
             }
             return text;
         },
-        downloadYoutubeVideo() {
+        async downloadYoutubeVideo() {
             if (!this.youtubeData.quality) {
                 this.errorMessages = 'Vui lòng chọn chất lượng video';
                 return;
             }
             const videoSelect = this.youtubeData.qualityOptions.find((item) => item.value === this.youtubeData.quality);
-            this.fetchFileAndDownload(videoSelect.url, this.youtubeData.title + '.' + videoSelect.value);
-        }
-    }
+            const filename = this.youtubeData.title + '.' + videoSelect.value;
+            // create a link to download
+            const link = document.createElement('a');
+            link.href = videoSelect.url;
+            link.download = filename;
+            link.click();
+        },
+    },
 
 }
 </script>

@@ -32,7 +32,7 @@ class VideoController extends Controller
             $configClient['query']['url'] = $request['url'];
         } else {
             $configClient = RAPID_API_YOUTUBE;
-            $configClient['query']['videoId'] = $request['videoId'];
+            $configClient['query']['id'] = $request['videoId'];
         }
         return $this->rapidApiService->RapidApiClient($configClient, $request->all());
 
