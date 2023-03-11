@@ -192,14 +192,7 @@ export default {
             });
         },
         fetchFileAndDownload(url, name) {
-            fetch(url, {
-                method: 'GET',
-                mode: 'no-cors',
-                // fix cors error
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
-            }) // Call the fetch function passing the url of the API as a parameter
+            fetch(url) // Call the fetch function passing the url of the API as a parameter
                 .then((resp) => {
                     return resp.blob();
                 }) // Transform the data into blob
