@@ -201,7 +201,6 @@ export default {
                 },
             }) // Call the fetch function passing the url of the API as a parameter
                 .then((resp) => {
-                    console.log(resp);
                     return resp.blob();
                 }) // Transform the data into blob
                 .then(function (blob) {
@@ -213,7 +212,7 @@ export default {
                     let a = document.createElement('a');
                     a.href = url
                     a.download = name;
-                    // a.click();
+                    a.click();
                 })
                 .catch(function (error) {
                     // If there is any error you will catch them here
